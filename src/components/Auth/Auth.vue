@@ -6,17 +6,22 @@ import BaseButton from '../ui/BaseButton.vue'
 const usuario = ref('')
 const password = ref('')
 
-function loguin() {}
+function login() {
+  console.log(usuario.value)
+  console.log(password.value)
+}
 </script>
 <template>
-  <BaseCard title="Iniciar Sesion">
-    <BaseInput v-model="usuario" label="usuario" placeholder="Ingrese su usuario" type="text" />
-    <BaseInput
-      v-model="password"
-      label="Contraseña"
-      placeholder="Ingrese su contraseña"
-      type="password"
-    />
-    <BaseButton text="Iniciar Sesión" type="submit" />
+  <BaseCard title="Iniciar Sesión">
+    <form title="Iniciar Sesion" @submit.prevent="login">
+      <BaseInput v-model="usuario" label="Usuario" placeholder="Ingrese su usuario" type="text" />
+      <BaseInput
+        v-model="password"
+        label="Contraseña"
+        placeholder="Ingrese su contraseña"
+        type="password"
+      />
+      <BaseButton text="Iniciar Sesión" type="submit" />
+    </form>
   </BaseCard>
 </template>

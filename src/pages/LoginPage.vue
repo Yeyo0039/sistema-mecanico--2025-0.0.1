@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import BaseCard from '@/components/ui/BaseCard.vue'
 import Auth from '@/components/Auth/Auth.vue'
 </script>
 
 <template>
-  <BaseCard title="login">
-    <Auth> </Auth>
-  </BaseCard>
+  <main class="login-page">
+    <Auth />
+  </main>
 </template>
+
+<style scoped>
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>
