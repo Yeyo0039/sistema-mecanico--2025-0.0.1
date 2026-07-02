@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import BaseCard from '@/components/ui/BaseCard.vue'
+import Auth from '@/components/Auth/Auth.vue'
 </script>
 
 <template>
   <BaseCard title="login">
-    <P1>usuario:</P1>
-    <p2>contraseña:</p2>
+    <Auth> </Auth>
   </BaseCard>
 </template>

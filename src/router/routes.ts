@@ -7,10 +7,5 @@ const routes = [
     name: 'Login',
     component: LoginPage,
   },
-  {
-    path: '/Login',
-    name: 'dashboard',
-    component: DashboardPage,
-  },
 ]
 export { routes }
