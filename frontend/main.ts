@@ -2,14 +2,16 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
 import App from './App.vue'
-import { routes } from '../frontend/src/router/routes.ts'
+import router from './src/router'
 
-//styles
-import './assets/css/resert.css'
-import './assets/css/variables.css'
-import './assets/css/global.css'
+// styles
+import './src/assets/css/resert.css'
+import './src/assets/css/variables.css'
+import './src/assets/css/global.css'
 
-App.use(createPinia())
-App.use(routes)
+const app = createApp(App)
 
-App.mount('#app')
+app.use(createPinia())
+app.use(router)
+
+app.mount('#app')

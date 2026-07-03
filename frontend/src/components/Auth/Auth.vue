@@ -6,7 +6,7 @@ import BaseButton from '../ui/BaseButton.vue'
 const usuario = ref('')
 const password = ref('')
 
-function login() {
+async function login() {
   console.log(usuario.value)
   console.log(password.value)
   if (!usuario.value && !password.value) {
