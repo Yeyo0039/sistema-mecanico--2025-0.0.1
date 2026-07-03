@@ -9,6 +9,10 @@ const password = ref('')
 function login() {
   console.log(usuario.value)
   console.log(password.value)
+  if (!usuario.value && !password.value) {
+    console.log('error')
+    return
+  }
 }
 </script>
 <template>
