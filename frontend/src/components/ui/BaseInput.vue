@@ -1,42 +1,73 @@
 <script setup lang="ts">
 const props = defineProps<{
   label: string
-  placeholder: string
-  type: string
+  placeholder?: string
+  type?: string
   modelValue: string
+
+  readonly?: boolean
+  disabled?: boolean
+  required?: boolean
+
+  error?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
 </script>
-
+// imput base general
 <template>
-  <div>
-    <label>
+  <div class="input-group">
+    <label class="input-label">
       {{ props.label }}
     </label>
 
     <input
       class="input"
-      :type="props.type"
+      :class="{ 'input-error': props.error }"
+      :type="props.type ?? 'text'"
       :placeholder="props.placeholder"
       :value="props.modelValue"
+      :readonly="props.readonly"
+      :disabled="props.disabled"
+      :required="props.required"
       @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     />
+    <span v-if="props.error" class="error-text">
+      {{ props.error }}
+    </span>
   </div>
 </template>
 
 <style scoped>
+.input-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+.input:read-only {
+  background: var(--color-surface);
+  cursor: default;
+}
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
 .input-group {
   display: flex;
-  flex-direction: colum;
+  flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
 .input-label {
   font-size: 0.9rem;
-  color: var (--color-text-secondary);
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 .input {
