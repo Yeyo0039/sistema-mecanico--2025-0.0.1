@@ -16,7 +16,7 @@ const visibleMenu = menu.filter((item) => hasPermission(userRole, item.roles))
 <template>
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <h2>MecaSys</h2>
+      <h2>CRM</h2>
       <span>Panel Administrativo</span>
     </div>
 
