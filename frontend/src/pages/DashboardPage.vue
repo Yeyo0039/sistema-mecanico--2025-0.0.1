@@ -1,4 +1,10 @@
+<script setup lang="ts">
+const props = defineProps<{
+  title: string
+}>()
+</script>
+
 <template>
-  <h1>Dashboard del Taller</h1>
+  <h1>{{ props.title }}</h1>
   <p>Bienvenido al sistema.</p>
 </template>
