@@ -1,4 +1,4 @@
-import Workspace from '@/components/dashboard/Workspace.vue'
+import workSpace from '@/components/workSpace/workSpace.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
 
@@ -16,32 +16,32 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: Workspace,
+    component: workSpace,
   },
   {
     path: '/inventory',
     name: 'Inventory',
-    component: Workspace,
+    component: workSpace,
   },
   {
     path: '/clients',
     name: 'Clients',
-    component: Workspace,
+    component: workSpace,
   },
   {
     path: '/vehicles',
     name: 'Vehicles',
-    component: Workspace,
+    component: workSpace,
   },
   {
     path: '/orders',
     name: 'Orders',
-    component: Workspace,
+    component: workSpace,
   },
   {
     path: '/users',
     name: 'Users',
-    component: Workspace,
+    component: workSpace,
   },
 ]
 

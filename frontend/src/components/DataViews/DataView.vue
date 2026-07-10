@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import { computed, reactive, onMounted } from 'vue'
-
 import Toolbar from './Toolbar.vue'
-
 import TableView from './views/TableView.vue'
-
 import CardView from './views/CardView.vue'
-
 import CompactView from './views/CompactView.vue'
-
 import Pagination from './Pagination.vue'
+import { computed, reactive, onMounted, watch } from 'vue'
 
 const props = defineProps({
   config: {
