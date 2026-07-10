@@ -4,9 +4,22 @@ import DashboardHeader from '@/components/dashboard/dashboardHeader.vue'
 import { useNotification } from '@/composables/useNotification'
 import { onMounted } from 'vue'
 
+type MenuItem = {
+  path: string
+  title: string
+  icon: string
+  roles: number[]
+}
+
 const props = defineProps<{
   title: string
   subtitle?: string
+  activeModule?: string
+  menuItems?: MenuItem[]
+}>()
+
+const emit = defineEmits<{
+  (event: 'change-module', value: string): void
 }>()
 
 const notify = useNotification()
@@ -18,7 +31,11 @@ onMounted(() => {
 
 <template>
   <div class="dashboard-layout">
-    <SideBar />
+    <SideBar
+      :menu-items="props.menuItems"
+      :active-module="props.activeModule"
+      @change-module="emit('change-module', $event)"
+    />
 
     <div class="dashboard-content">
       <DashboardHeader :title="props.title" :subtitle="props.subtitle" />

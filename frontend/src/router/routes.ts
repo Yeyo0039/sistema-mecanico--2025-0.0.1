@@ -1,5 +1,4 @@
-import DashboardPage from '@/pages/DashboardPage.vue'
-import InventoryPage from '@/pages/inventoryPage.vue'
+import Workspace from '@/components/dashboard/Workspace.vue'
 import LoginPage from '@/pages/LoginPage.vue'
 import RegisterPage from '@/pages/RegisterPage.vue'
 
@@ -17,12 +16,32 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: DashboardPage,
+    component: Workspace,
   },
   {
-    path: '/inventoy',
+    path: '/inventory',
     name: 'Inventory',
-    component: InventoryPage,
+    component: Workspace,
+  },
+  {
+    path: '/clients',
+    name: 'Clients',
+    component: Workspace,
+  },
+  {
+    path: '/vehicles',
+    name: 'Vehicles',
+    component: Workspace,
+  },
+  {
+    path: '/orders',
+    name: 'Orders',
+    component: Workspace,
+  },
+  {
+    path: '/users',
+    name: 'Users',
+    component: Workspace,
   },
 ]
 

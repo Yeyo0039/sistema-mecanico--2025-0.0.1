@@ -2,7 +2,7 @@
 import InventoryStats from './inventoryStats.vue'
 import InventoryToolbar from './inventoryToolbar.vue'
 import InventoryFilters from './inventoryFilters.vue'
-import InventoryTable from './inventoryTable.vue'
+import inventoryTable from './InventoryTable.vue'
 import DashboardCard from '../dashboard/dashboardCard.vue'
 import SideBar from '../dashboard/SideBar.vue'
 </script>
@@ -16,6 +16,6 @@ import SideBar from '../dashboard/SideBar.vue'
 
     <InventoryFilters />
 
-    <InventoryTable />
+    <inventoryTable />
   </DashboardCard>
 </template>

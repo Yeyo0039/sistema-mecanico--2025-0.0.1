@@ -1,16 +1,21 @@
 <script setup lang="ts">
-import { RouterLink, useRoute } from 'vue-router'
+const props = defineProps<{
+  menuItems?: Array<{
+    path: string
+    title: string
+    icon: string
+    roles: number[]
+  }>
+  activeModule?: string
+}>()
 
-import menu from '@/config/sideMenuConfig'
-import { hasPermission } from '@/composables/utils/permissions'
+const emit = defineEmits<{
+  (event: 'change-module', value: string): void
+}>()
 
-// Temporal.
-// Luego vendrá del AuthStore.
-const userRole = 1
-
-const route = useRoute()
-
-const visibleMenu = menu.filter((item) => hasPermission(userRole, item.roles))
+function selectModule(path: string) {
+  emit('change-module', path)
+}
 </script>
 
 <template>
@@ -21,12 +26,17 @@ const visibleMenu = menu.filter((item) => hasPermission(userRole, item.roles))
     </div>
 
     <nav class="sidebar-menu">
-      <RouterLink
-        v-for="item in visibleMenu"
+      <button
+        v-for="item in props.menuItems"
         :key="item.path"
-        :to="item.path"
+        type="button"
         class="menu-item"
-        :class="{ active: route.path === item.path }"
+        :class="{
+          active:
+            props.activeModule === item.path.replace('/', '') ||
+            (!props.activeModule && item.path === '/dashboard'),
+        }"
+        @click="selectModule(item.path)"
       >
         <span class="icon">
           {{ item.icon }}
@@ -35,7 +45,7 @@ const visibleMenu = menu.filter((item) => hasPermission(userRole, item.roles))
         <span>
           {{ item.title }}
         </span>
-      </RouterLink>
+      </button>
     </nav>
 
     <div class="sidebar-footer">
@@ -90,7 +100,7 @@ const visibleMenu = menu.filter((item) => hasPermission(userRole, item.roles))
 
   text-decoration: none;
 
-  color: var(--color-text);
+  color: var(--color-primary);
 
   transition: 0.25s;
 }
