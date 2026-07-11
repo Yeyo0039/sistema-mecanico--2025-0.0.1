@@ -1,5 +1,2 @@
-import inventoryConfig from '@/components/workSpace/modulos/InventarioView.vue'
-import dashboardLayaud from '../dashboard/dashboardCard.vue'';
-export const ModuleRegistry = {
-  inventory: inventoryConfig,
-}
+/** @deprecated Import ModuleRegistry from '@/app/ModuleRegistry'. */
+export { ModuleRegistry } from '@/app/ModuleRegistry'

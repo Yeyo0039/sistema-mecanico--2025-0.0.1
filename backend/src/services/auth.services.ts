@@ -1,6 +1,7 @@
 import db from "../config/database.ts";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import process from "node:process";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-key";
 

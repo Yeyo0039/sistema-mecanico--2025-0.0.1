@@ -147,11 +147,11 @@ function executeAction(action: any, row: any) {
       @filter="onFilter"
     />
 
-    <TableView v-if="ui.mode === 'table'" :view="viewContext" @action="executeAction" />
+    <TableView v-if="ui.mode === 'table'" :rows="visibleRows" :columns="config.columns ?? []" @action="executeAction" />
 
-    <CardView v-else-if="ui.mode === 'cards'" :view="viewContext" @action="executeAction" />
+    <CardView v-else-if="ui.mode === 'cards'" :rows="visibleRows" :columns="config.columns ?? []" @action="executeAction" />
 
-    <CompactView v-else :view="viewContext" @action="executeAction" />
+    <CompactView v-else :rows="visibleRows" :columns="config.columns ?? []" @action="executeAction" />
 
     <Pagination v-if="config.pagination" :page="ui.page" :pages="totalPages" @change="changePage" />
   </div>
