@@ -1,8 +1,5 @@
-import DashboardModule from '@/modules/dashboard/DashboardModule.vue'
-import InventoryModule from '@/modules/inventory/InventoryModule.vue'
-
+import inventoryConfig from '@/components/workSpace/modulos/InventarioView.vue'
+import dashboardLayaud from '../dashboard/dashboardCard.vue'';
 export const ModuleRegistry = {
-  dashboard: DashboardModule,
-
-  inventory: InventoryModule,
+  inventory: inventoryConfig,
 }
