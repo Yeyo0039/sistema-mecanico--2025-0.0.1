@@ -42,6 +42,7 @@ const emit = defineEmits(['change'])
   border-radius: 8px;
   background: var(--color-surface);
   cursor: pointer;
+  color: white;
 }
 
 .dv-page.active {

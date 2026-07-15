@@ -4,6 +4,7 @@ import DataView from '@/components/DataViews/DataView.vue'
 import InventoryFilters from './components/inventoryFilters.vue'
 import { getCategorias, type Categoria } from './services/categorias.service'
 import { getProductos, type Producto } from './services/productos.service'
+import BaseButton from '@/components/ui/BaseButton.vue'
 
 const rows = ref<Producto[]>([])
 const categorias = ref<Categoria[]>([])
@@ -78,6 +79,8 @@ onBeforeUnmount(() => {
       :loading="loading"
       @seleccionar="seleccionarCategoria"
     />
+    <BaseButton text="agregar" type="button" icon="+" @click="" />
+
     <p v-if="loading" class="loading">Cargando inventario...</p>
     <DataView v-else :config="config" :rows="rows" />
   </section>

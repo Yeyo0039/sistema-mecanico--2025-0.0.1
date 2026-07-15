@@ -4,7 +4,7 @@ export const inventorySchema: FormSection[] = [
   {
     title: 'Información General',
 
-    columns: 2,
+    columns: 4,
 
     fields: [
       {
@@ -30,8 +30,11 @@ export const inventorySchema: FormSection[] = [
         name: 'categoria',
         label: 'Categoría',
         type: 'select',
-
-        options: ['Ortesis', 'Prótesis', 'Insumo'],
+      },
+      {
+        name: 'compatibilidad',
+        label: 'Motos y compatibilidades',
+        type: 'checkbox',
       },
     ],
   },
@@ -39,7 +42,7 @@ export const inventorySchema: FormSection[] = [
   {
     title: 'Inventario',
 
-    columns: 2,
+    columns: 4,
 
     fields: [
       {
@@ -64,6 +67,16 @@ export const inventorySchema: FormSection[] = [
         name: 'precioVenta',
         label: 'Precio venta',
         type: 'number',
+      },
+      {
+        name: 'detalles',
+        label: 'detalles',
+        type: 'textarea',
+      },
+      {
+        name: 'image',
+        label: 'imagen no disponible',
+        type: 'text',
       },
     ],
   },

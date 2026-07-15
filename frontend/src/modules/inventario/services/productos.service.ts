@@ -1,3 +1,4 @@
+import { inventorySchema } from '@/components/forms/schemas/inventory.schema'
 import { apiFetch } from '@/services/apiFetch'
 
 // Tipo que usa la UI. Agrega aquí cada nueva columna que entregue el backend.
@@ -35,6 +36,10 @@ export async function getProductos(
   if (filters.search?.trim()) params.set('search', filters.search.trim())
 
   const query = params.toString()
-  const response = await apiFetch<Producto[]>(`/api/productos${query ? `?${query}` : ''}`, { signal })
+  const response = await apiFetch<Producto[]>(`/api/productos${query ? `?${query}` : ''}`, {
+    signal,
+  })
   return response.data
 }
+
+export function crearProductos() {}

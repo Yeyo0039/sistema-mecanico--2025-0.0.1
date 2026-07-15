@@ -1,0 +1,542 @@
+# DataViewToolbar
+
+## Descripción
+
+`DataViewToolbar` es un componente reutilizable encargado de renderizar las herramientas visuales de un DataView.
+
+Su objetivo es ser completamente independiente de la lógica del negocio, permitiendo ser utilizado en cualquier módulo del sistema:
+
+- Inventario
+- Usuarios
+- Clientes
+- Cotizaciones
+- Pedidos
+- Categorías
+- Etc...
+
+El componente NO conoce qué información está mostrando ni consume APIs. Únicamente renderiza las herramientas configuradas por el componente padre y emite eventos cuando el usuario interactúa con ellas.
+
+---
+
+## Responsabilidades
+
+El Toolbar únicamente tiene cuatro responsabilidades:
+
+```text
+- Buscar información.
+- Aplicar filtros.
+- Ejecutar acciones.
+- Cambiar el tipo de vista.
+```
+
+Por esta razón solamente expone cuatro eventos:
+
+```ts
+@search
+@filter
+@action
+@view
+```
+
+---
+
+## Estructura del componente
+
+```text
+ToolbarConfig
+
+│
+├── title
+├── search
+├── actions
+├── filters
+└── views
+```
+
+---
+
+## Types
+
+```ts
+export type ToolbarView = 'table' | 'cards' | 'list'
+
+export type ToolbarFilterType = 'select' | 'text' | 'number' | 'date' | 'checkbox'
+
+export interface ToolbarAction {
+  id: string
+
+  label: string
+
+  icon?: string
+}
+
+export interface ToolbarFilter {
+  id: string
+
+  type: ToolbarFilterType
+
+  label: string
+
+  items?: unknown[]
+}
+
+export interface ToolbarConfig {
+  title?: string
+
+  search?: boolean
+
+  actions?: ToolbarAction[]
+
+  filters?: ToolbarFilter[]
+
+  views?: ToolbarView[]
+}
+```
+
+---
+
+# Propiedades
+
+## title
+
+Permite mostrar el título del módulo.
+
+```ts
+title: 'Inventario'
+```
+
+Visualmente:
+
+```text
+Inventario
+```
+
+---
+
+## search
+
+Permite habilitar o deshabilitar el buscador.
+
+```ts
+search: true
+```
+
+Visualmente:
+
+```text
+[ Buscar... ]
+```
+
+Si se establece en:
+
+```ts
+search: false
+```
+
+El buscador no será renderizado.
+
+---
+
+## actions
+
+Representa los botones disponibles dentro del Toolbar.
+
+```ts
+actions: [
+  {
+    id: 'create-product',
+
+    label: 'Agregar Producto',
+
+    icon: 'add',
+  },
+]
+```
+
+Visualmente:
+
+```text
+[ + Agregar Producto ]
+```
+
+---
+
+### Múltiples acciones
+
+```ts
+actions: [
+  {
+    id: 'create-product',
+
+    label: 'Agregar Producto',
+
+    icon: 'add',
+  },
+
+  {
+    id: 'export-excel',
+
+    label: 'Exportar Excel',
+
+    icon: 'download',
+  },
+]
+```
+
+Visualmente:
+
+```text
+[ + Agregar Producto ]
+
+[ Exportar Excel ]
+```
+
+---
+
+## filters
+
+Los filtros son completamente dinámicos.
+
+El componente únicamente renderiza el tipo de filtro indicado.
+
+Tipos disponibles:
+
+```ts
+select
+text
+number
+date
+checkbox
+```
+
+---
+
+### Select
+
+```ts
+{
+
+    id: "categoria",
+
+    type: "select",
+
+    label: "Categoría",
+
+    items: categorias
+
+}
+```
+
+Visualmente:
+
+```text
+Categoría
+
+[ Seleccionar ]
+```
+
+---
+
+### Text
+
+```ts
+{
+
+    id: "referencia",
+
+    type: "text",
+
+    label: "Referencia"
+
+}
+```
+
+---
+
+### Number
+
+```ts
+{
+
+    id: "precio",
+
+    type: "number",
+
+    label: "Precio"
+
+}
+```
+
+---
+
+### Date
+
+```ts
+{
+
+    id: "fecha",
+
+    type: "date",
+
+    label: "Fecha"
+
+}
+```
+
+---
+
+### Checkbox
+
+```ts
+{
+
+    id: "disponible",
+
+    type: "checkbox",
+
+    label: "Solo disponibles"
+
+}
+```
+
+---
+
+## items
+
+Los filtros que necesiten información dinámica utilizarán la propiedad:
+
+```ts
+items: []
+```
+
+Ejemplo:
+
+```ts
+{
+
+    id: "categoria",
+
+    type: "select",
+
+    label: "Categoría",
+
+    items: []
+
+}
+```
+
+Posteriormente puede ser llenada desde cualquier API.
+
+```ts
+const categorias = await getCategorias()
+```
+
+```ts
+items: categorias
+```
+
+Gracias a la reactividad de Vue el componente se actualizará automáticamente.
+
+---
+
+## views
+
+Permite cambiar el tipo de visualización del DataView.
+
+```ts
+views: ['table', 'cards', 'list']
+```
+
+Visualmente:
+
+```text
+[ Tabla ]
+
+[ Tarjetas ]
+
+[ Lista ]
+```
+
+Si solamente existe una vista:
+
+```ts
+views: ['table']
+```
+
+El selector de vistas puede ocultarse automáticamente.
+
+---
+
+# Eventos
+
+El componente únicamente emite cuatro eventos.
+
+---
+
+## search
+
+```ts
+emit('search', value)
+```
+
+Ejemplo:
+
+```ts
+emit('search', 'Pastillas de freno')
+```
+
+---
+
+## filter
+
+```ts
+emit('filter', {
+  id: 'categoria',
+
+  value: 5,
+})
+```
+
+---
+
+## action
+
+```ts
+emit('action', action)
+```
+
+Ejemplo:
+
+```ts
+emit('action', {
+  id: 'create-product',
+
+  label: 'Agregar Producto',
+
+  icon: 'add',
+})
+```
+
+---
+
+## view
+
+```ts
+emit('view', 'cards')
+```
+
+---
+
+# Ejemplo completo
+
+```ts
+const toolbarConfig = {
+  title: 'Inventario',
+
+  search: true,
+
+  actions: [
+    {
+      id: 'create-product',
+
+      label: 'Agregar Producto',
+
+      icon: 'add',
+    },
+
+    {
+      id: 'export-excel',
+
+      label: 'Exportar Excel',
+
+      icon: 'download',
+    },
+  ],
+
+  filters: [
+    {
+      id: 'categoria',
+
+      type: 'select',
+
+      label: 'Categoría',
+
+      items: categorias,
+    },
+
+    {
+      id: 'marca',
+
+      type: 'select',
+
+      label: 'Marca',
+
+      items: marcas,
+    },
+
+    {
+      id: 'stock',
+
+      type: 'checkbox',
+
+      label: 'Solo disponibles',
+    },
+  ],
+
+  views: ['table', 'cards'],
+}
+```
+
+---
+
+# Uso del componente
+
+```vue
+<DataViewToolbar
+  :config="toolbarConfig"
+  @search="handleSearch"
+  @filter="handleFilter"
+  @action="handleAction"
+  @view="handleView"
+/>
+```
+
+---
+
+# Resultado esperado
+
+```text
+---------------------------------------------------
+
+Inventario
+
+[ + Agregar Producto ]
+
+[ Exportar Excel ]
+
+[ Buscar................ ]
+
+[ Categoría ▼ ]
+
+[ Marca ▼ ]
+
+[ ] Solo disponibles
+
+
+                    [ Tabla ] [ Tarjetas ]
+
+---------------------------------------------------
+```
+
+---
+
+# Filosofía del componente
+
+- No contiene lógica del negocio.
+- No consume APIs.
+- No modifica estados externos.
+- No conoce el módulo que lo utiliza.
+- Únicamente renderiza herramientas visuales.
+- Toda la lógica pertenece al componente padre.
+
+El `DataViewToolbar` debe considerarse un componente base del sistema y su comportamiento debe mantenerse genérico y declarativo para maximizar su reutilización.

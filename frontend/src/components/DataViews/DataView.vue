@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import Toolbar from './Toolbar.vue'
+import { computed, reactive } from 'vue'
+
 import TableView from './views/TableView.vue'
 import CardView from './views/CardView.vue'
 import CompactView from './views/CompactView.vue'
 import Pagination from './Pagination.vue'
-import { computed, reactive, onMounted, watch } from 'vue'
+
+import type { ToolbarView } from './DataViewToolbar.types.ts'
 
 const props = defineProps({
   config: {
@@ -16,121 +18,50 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+
+  view: {
+    type: String,
+    default: undefined,
+  },
 })
 
-const emit = defineEmits(['action', 'selection-change'])
+const emit = defineEmits(['action'])
 
 const ui = reactive({
   page: 1,
 
-  pageSize: 20,
-
-  search: '',
-
-  filters: {},
-
-  sort: null,
-
-  mode: props.config.mode ?? 'table',
+  currentView: props.config.defaultView ?? 'table',
 })
 
-watch(
-  () => props.config.mode,
-  (value) => {
-    if (value) {
-      ui.mode = value
-    }
-  },
-)
-
-const filteredRows = computed(() => {
-  let data = [...props.rows]
-
-  if (ui.search) {
-    const value = ui.search.toLowerCase()
-
-    data = data.filter((row) =>
-      JSON.stringify(row)
-
-        .toLowerCase()
-
-        .includes(value),
-    )
-  }
-
-  // filtros personalizados
-  // próximamente
-
-  // ordenamiento
-  // próximamente
-
-  return data
+const currentView = computed<ToolbarView>(() => {
+  return (props.view ?? ui.currentView) as ToolbarView
 })
 
-const totalRows = computed(() => filteredRows.value.length)
+const pageSize = computed(() => {
+  return props.config.pageSize ?? 20
+})
+
+const totalRows = computed(() => {
+  return props.rows.length
+})
 
 const totalPages = computed(() => {
-  return Math.max(
-    1,
-
-    Math.ceil(totalRows.value / ui.pageSize),
-  )
+  return Math.max(1, Math.ceil(totalRows.value / pageSize.value))
 })
 
 const visibleRows = computed(() => {
-  const start = (ui.page - 1) * ui.pageSize
+  const start = (ui.page - 1) * pageSize.value
 
-  return filteredRows.value.slice(
-    start,
-
-    start + ui.pageSize,
-  )
+  return props.rows.slice(start, start + pageSize.value)
 })
-
-const viewContext = computed(() => ({
-  config: props.config,
-
-  rows: visibleRows.value,
-
-  columns: props.config.columns ?? [],
-
-  actions: props.config.actions ?? [],
-
-  filters: ui.filters,
-
-  sort: ui.sort,
-
-  page: ui.page,
-
-  pageSize: ui.pageSize,
-
-  totalRows: totalRows.value,
-}))
 
 function changePage(page: number) {
   ui.page = page
 }
 
-function onSearch(value: string) {
-  ui.search = value
-
-  ui.page = 1
-}
-
-function onFilter(filters: any) {
-  ui.filters = filters
-
-  ui.page = 1
-}
-
 function executeAction(action: any, row: any) {
-  if (action.callback) {
-    action.callback(row)
-  }
-
   emit('action', {
     action,
-
     row,
   })
 }
@@ -138,21 +69,35 @@ function executeAction(action: any, row: any) {
 
 <template>
   <div class="dv">
-    <Toolbar
-      v-if="config.toolbar"
-      :config="config"
-      :search="ui.search"
-      :filters="ui.filters"
-      @search="onSearch"
-      @filter="onFilter"
+    <TableView
+      v-if="currentView === 'table'"
+      :rows="visibleRows"
+      :columns="config.columns ?? []"
+      @action="executeAction"
     />
 
-    <TableView v-if="ui.mode === 'table'" :rows="visibleRows" :columns="config.columns ?? []" @action="executeAction" />
+    <CardView
+      v-else-if="currentView === 'cards'"
+      :rows="visibleRows"
+      :columns="config.columns ?? []"
+      @action="executeAction"
+    />
 
-    <CardView v-else-if="ui.mode === 'cards'" :rows="visibleRows" :columns="config.columns ?? []" @action="executeAction" />
-
-    <CompactView v-else :rows="visibleRows" :columns="config.columns ?? []" @action="executeAction" />
+    <CompactView
+      v-else
+      :rows="visibleRows"
+      :columns="config.columns ?? []"
+      @action="executeAction"
+    />
 
     <Pagination v-if="config.pagination" :page="ui.page" :pages="totalPages" @change="changePage" />
   </div>
 </template>
+
+<style scoped>
+.dv {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+</style>
