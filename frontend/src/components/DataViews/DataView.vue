@@ -9,19 +9,29 @@ import Pagination from './Pagination.vue'
 import type { ToolbarView } from './DataViewToolbar.types.ts'
 
 const props = defineProps({
-  config: {
-    type: Object,
-    required: true,
+  rows: {
+    type: Array,
+    default: () => [],
   },
 
-  rows: {
+  columns: {
     type: Array,
     default: () => [],
   },
 
   view: {
     type: String,
-    default: undefined,
+    default: 'table',
+  },
+
+  pagination: {
+    type: Boolean,
+    default: false,
+  },
+
+  pageSize: {
+    type: Number,
+    default: 20,
   },
 })
 
@@ -30,7 +40,7 @@ const emit = defineEmits(['action'])
 const ui = reactive({
   page: 1,
 
-  currentView: props.config.defaultView ?? 'table',
+  currentView: props.view ?? 'table',
 })
 
 const currentView = computed<ToolbarView>(() => {
@@ -38,7 +48,7 @@ const currentView = computed<ToolbarView>(() => {
 })
 
 const pageSize = computed(() => {
-  return props.config.pageSize ?? 20
+  return props.pageSize ?? 20
 })
 
 const totalRows = computed(() => {
@@ -64,6 +74,7 @@ function executeAction(action: any, row: any) {
     action,
     row,
   })
+  console.log(emit)
 }
 </script>
 
@@ -72,25 +83,25 @@ function executeAction(action: any, row: any) {
     <TableView
       v-if="currentView === 'table'"
       :rows="visibleRows"
-      :columns="config.columns ?? []"
+      :columns="props.columns ?? []"
       @action="executeAction"
     />
 
     <CardView
       v-else-if="currentView === 'cards'"
       :rows="visibleRows"
-      :columns="config.columns ?? []"
+      :columns="props.columns ?? []"
       @action="executeAction"
     />
 
     <CompactView
       v-else
       :rows="visibleRows"
-      :columns="config.columns ?? []"
+      :columns="props.columns ?? []"
       @action="executeAction"
     />
 
-    <Pagination v-if="config.pagination" :page="ui.page" :pages="totalPages" @change="changePage" />
+    <Pagination v-if="props.pagination" :page="ui.page" :pages="totalPages" @change="changePage" />
   </div>
 </template>
 

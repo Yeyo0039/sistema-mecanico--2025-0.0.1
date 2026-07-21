@@ -8,7 +8,7 @@ const props = defineProps<{
   readonly?: boolean
   disabled?: boolean
   required?: boolean
-
+  variant?: 'default' | 'search'
   error?: string
 }>()
 
@@ -25,7 +25,7 @@ const emit = defineEmits<{
 
     <input
       class="input"
-      :class="{ 'input-error': props.error }"
+      :class="{ 'input-error': props.error, 'input-search': props.variant === 'search' }"
       :type="props.type ?? 'text'"
       :placeholder="props.placeholder"
       :value="props.modelValue"
@@ -86,6 +86,13 @@ const emit = defineEmits<{
 }
 .input::placeholder {
   color: var(--color-text-secondary);
+}
+.input-search {
+  padding: 1rem 1.5rem;
+
+  border-radius: 999px;
+
+  font-size: 1rem;
 }
 .input:focus {
   border-color: var(--color-primary);

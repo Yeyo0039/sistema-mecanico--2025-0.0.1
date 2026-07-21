@@ -1,88 +1,153 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+
+import Toolbar from '@/components/DataViews/Toolbar.vue'
 import DataView from '@/components/DataViews/DataView.vue'
-import InventoryFilters from './components/inventoryFilters.vue'
+
 import { getCategorias, type Categoria } from './services/categorias.service'
 import { getProductos, type Producto } from './services/productos.service'
-import BaseButton from '@/components/ui/BaseButton.vue'
+import type { ToolbarConfig, ToolbarFilter } from '@/components/DataViews/DataViewToolbar.types'
 
-const rows = ref<Producto[]>([])
+const productos = ref<Producto[]>([])
 const categorias = ref<Categoria[]>([])
-const categoriaSeleccionada = ref<number | null>(null)
-const loading = ref(false)
-let controller: AbortController | undefined
-let categoriesController: AbortController | undefined
 
-const config = {
+const currentView = ref<'table' | 'cards'>('table')
+const loading = ref(false)
+
+//----------------------------------
+// CONFIG FILTERS
+//----------------------------------
+
+const filters = computed<ToolbarFilter[]>(() => [
+  {
+    id: 'categoria',
+    type: 'select',
+    label: 'Categoría',
+    items: categorias.value.map((categoria) => ({
+      value: categoria.id,
+      label: categoria.nombre,
+    })),
+  },
+])
+
+//----------------------------------
+// CONFIG TOOLBAR
+//----------------------------------
+
+const toolbarConfig = computed<ToolbarConfig>(() => ({
   title: 'Inventario',
-  mode: 'table',
-  toolbar: true,
-  pagination: true,
-  columns: [
-    { field: 'codigo', title: 'Código' },
-    { field: 'nombre', title: 'Nombre' },
-    { field: 'categoria', title: 'Categoría' },
-    { field: 'marca', title: 'Marca' },
-    { field: 'precio', title: 'Precio' },
-    { field: 'stock', title: 'Stock' },
+
+  search: true,
+
+  actions: [
+    {
+      id: 'create-product',
+      label: 'Agregar producto',
+      icon: 'add',
+    },
   ],
+
+  filters: filters.value,
+
+  views: ['table', 'cards'],
+}))
+
+//----------------------------------
+// CONFIG DATAVIEW
+//----------------------------------
+
+const columns = computed(() => [
+  {
+    field: 'codigo',
+    title: 'Código',
+  },
+
+  {
+    field: 'nombre',
+    title: 'Nombre',
+  },
+
+  {
+    field: 'categoria',
+    title: 'Categoría',
+  },
+
+  {
+    field: 'marca',
+    title: 'Marca',
+  },
+
+  {
+    field: 'precio',
+    title: 'Precio',
+  },
+
+  {
+    field: 'stock',
+    title: 'Stock',
+  },
+])
+
+//----------------------------------
+// EVENTOS DEL TOOLBAR
+//----------------------------------
+
+function handleSearch(value: string) {
+  console.log('SEARCH:', value)
 }
 
-async function loadProductos() {
-  controller?.abort()
-  const currentController = new AbortController()
-  controller = currentController
+function handleFilter(filter: unknown) {
+  console.log('FILTER:', filter)
+}
+
+function handleAction(action: unknown) {
+  console.log('ACTION:', action)
+}
+
+function handleView(view: string) {
+  console.log('VIEW:', view)
+
+  currentView.value = view as 'table' | 'cards'
+}
+
+//----------------------------------
+// DATA
+//----------------------------------
+
+async function loadData() {
   loading.value = true
 
   try {
-    rows.value = await getProductos(
-      { categoriaId: categoriaSeleccionada.value },
-      currentController.signal,
-    )
-  } catch (error) {
-    if ((error as Error).name !== 'AbortError') rows.value = []
+    categorias.value = await getCategorias()
+    productos.value = await getProductos()
   } finally {
-    // Una solicitud anterior no puede terminar la carga de una solicitud más nueva.
-    if (controller === currentController) loading.value = false
+    loading.value = false
   }
 }
 
-function seleccionarCategoria(id: number | null) {
-  categoriaSeleccionada.value = id
-  void loadProductos()
-}
-
-onMounted(async () => {
-  categoriesController = new AbortController()
-  try {
-    categorias.value = await getCategorias(categoriesController.signal)
-  } catch (error) {
-    if ((error as Error).name !== 'AbortError') categorias.value = []
-  }
-
-  await loadProductos()
-})
-
-onBeforeUnmount(() => {
-  controller?.abort()
-  categoriesController?.abort()
-  rows.value = []
-  categorias.value = []
-})
+onMounted(loadData)
 </script>
 
 <template>
   <section class="inventory-view">
-    <InventoryFilters
-      :categorias="categorias"
-      :categoria-seleccionada="categoriaSeleccionada"
-      :loading="loading"
-      @seleccionar="seleccionarCategoria"
+    <Toolbar
+      :config="toolbarConfig"
+      @search="handleSearch"
+      @filter="handleFilter"
+      @action="handleAction"
+      @view="handleView"
     />
-    <BaseButton text="agregar" type="button" icon="+" @click="" />
 
-    <p v-if="loading" class="loading">Cargando inventario...</p>
-    <DataView v-else :config="config" :rows="rows" />
+    <p v-if="loading">Cargando inventario...</p>
+
+    <DataView
+      v-else
+      :rows="productos"
+      :columns="columns"
+      :view="currentView"
+      :pagination="true"
+      :page-size="20"
+    />
   </section>
 </template>
 
