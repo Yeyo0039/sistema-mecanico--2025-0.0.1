@@ -14,3 +14,5 @@ export async function getCategorias(signal?: AbortSignal): Promise<Categoria[]> 
   const response = await apiFetch<Categoria[]>('/api/categorias', { signal })
   return response.data
 }
+
+export async function crearProducto() {}

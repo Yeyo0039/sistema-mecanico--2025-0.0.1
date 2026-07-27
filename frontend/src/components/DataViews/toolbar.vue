@@ -142,7 +142,7 @@ function emitView(view: ToolbarView) {
   gap: 1rem;
 
   width: 100%;
-
+  align-content: center;
   padding: 1rem;
 
   background: var(--color-surface, #fff);
@@ -203,7 +203,7 @@ function emitView(view: ToolbarView) {
 
   border-radius: 8px;
 
-  border: 1px solid #d1d5db;
+  border: 1px solid #0c37f5;
 
   background: white;
 

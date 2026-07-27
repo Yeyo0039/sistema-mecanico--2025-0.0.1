@@ -139,6 +139,8 @@ async function submitForm() {
       <BaseSelect
         v-if="formConfig.showRole"
         v-model="formData.rol"
+        :id="formData.nombre"
+        ,
         label="Rol"
         :options="['Admin', 'Usuario', 'Mecanico']"
         :readonly="formConfig.readOnly"

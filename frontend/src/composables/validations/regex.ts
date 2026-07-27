@@ -7,3 +7,5 @@ export const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/
 export const DOCUMENT_REGEX = /^[0-9]{7,15}$/
 
 export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_-]).{8,}$/
+
+export const FILE_REGEX = /\.(jpg|jpeg|png|webp|pdf)$/i

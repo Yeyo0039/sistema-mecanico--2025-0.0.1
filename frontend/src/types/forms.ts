@@ -7,7 +7,17 @@ export type FieldType =
   | 'textarea'
   | 'date'
   | 'checkbox'
+  | 'file'
 
+export type SelectDatabaseOption = {
+  id: number | string
+  nombre: string
+}
+
+export type SelectOption = {
+  value: number | string
+  label: string
+}
 export interface FormField {
   name: string
   label: string
@@ -18,7 +28,8 @@ export interface FormField {
   readonly?: boolean
   disabled?: boolean
 
-  options?: string[]
+  source?: string
+  options?: SelectOption[]
 }
 
 export interface FormSection {

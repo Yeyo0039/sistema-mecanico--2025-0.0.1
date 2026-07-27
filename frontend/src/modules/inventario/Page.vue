@@ -1,28 +1,48 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 
-import Toolbar from '@/components/DataViews/Toolbar.vue'
+import Toolbar from '@/components/DataViews/toolbar.vue'
 import DataView from '@/components/DataViews/DataView.vue'
 
-import { getCategorias, type Categoria } from './services/categorias.service'
-import { getProductos, type Producto } from './services/productos.service'
-import type { ToolbarConfig, ToolbarFilter } from '@/components/DataViews/DataViewToolbar.types'
+import ProductForm from '@/components/forms/productForm.vue'
 
-const productos = ref<Producto[]>([])
+import { getCategorias, type Categoria } from './services/categorias.service'
+
+import {
+  getProductos,
+  handleSearch,
+  handleFilter,
+  productoRows,
+  loading,
+  reloadProductos,
+} from './services/productos.service'
+
+import type {
+  ToolbarConfig,
+  ToolbarFilter,
+  ToolbarAction,
+} from '@/components/DataViews/DataViewToolbar.types'
+
+//----------------------------------------------------
+// STATE
+//----------------------------------------------------
+
 const categorias = ref<Categoria[]>([])
 
 const currentView = ref<'table' | 'cards'>('table')
-const loading = ref(false)
 
-//----------------------------------
-// CONFIG FILTERS
-//----------------------------------
+const mode = ref<'list' | 'form'>('list')
+
+//----------------------------------------------------
+// FILTERS
+//----------------------------------------------------
 
 const filters = computed<ToolbarFilter[]>(() => [
   {
     id: 'categoria',
     type: 'select',
     label: 'Categoría',
+
     items: categorias.value.map((categoria) => ({
       value: categoria.id,
       label: categoria.nombre,
@@ -30,9 +50,9 @@ const filters = computed<ToolbarFilter[]>(() => [
   },
 ])
 
-//----------------------------------
-// CONFIG TOOLBAR
-//----------------------------------
+//----------------------------------------------------
+// TOOLBAR CONFIG
+//----------------------------------------------------
 
 const toolbarConfig = computed<ToolbarConfig>(() => ({
   title: 'Inventario',
@@ -52,9 +72,9 @@ const toolbarConfig = computed<ToolbarConfig>(() => ({
   views: ['table', 'cards'],
 }))
 
-//----------------------------------
-// CONFIG DATAVIEW
-//----------------------------------
+//----------------------------------------------------
+// DATAVIEW
+//----------------------------------------------------
 
 const columns = computed(() => [
   {
@@ -88,21 +108,9 @@ const columns = computed(() => [
   },
 ])
 
-//----------------------------------
-// EVENTOS DEL TOOLBAR
-//----------------------------------
-
-function handleSearch(value: string) {
-  console.log('SEARCH:', value)
-}
-
-function handleFilter(filter: unknown) {
-  console.log('FILTER:', filter)
-}
-
-function handleAction(action: unknown) {
-  console.log('ACTION:', action)
-}
+//----------------------------------------------------
+// TOOLBAR EVENTS
+//----------------------------------------------------
 
 function handleView(view: string) {
   console.log('VIEW:', view)
@@ -110,31 +118,56 @@ function handleView(view: string) {
   currentView.value = view as 'table' | 'cards'
 }
 
-//----------------------------------
-// DATA
-//----------------------------------
+function onToolbarAction(action: ToolbarAction) {
+  switch (action.id) {
+    case 'create-product':
+      mode.value = 'form'
+      break
+
+    default:
+      mode.value = 'list'
+
+      break
+  }
+}
+
+//----------------------------------------------------
+// FORM EVENTS
+//----------------------------------------------------
+
+function closeForm() {
+  mode.value = 'list'
+}
+
+//----------------------------------------------------
+// LOAD DATA
+//----------------------------------------------------
 
 async function loadData() {
   loading.value = true
 
   try {
     categorias.value = await getCategorias()
-    productos.value = await getProductos()
+
+    await getProductos()
   } finally {
     loading.value = false
+    mode.value = 'list'
   }
 }
 
-onMounted(loadData)
+onMounted(reloadProductos)
 </script>
 
 <template>
-  <section class="inventory-view">
+  <!-- LISTADO -->
+
+  <section v-if="mode === 'list'" class="inventory-view">
     <Toolbar
       :config="toolbarConfig"
       @search="handleSearch"
       @filter="handleFilter"
-      @action="handleAction"
+      @action="onToolbarAction"
       @view="handleView"
     />
 
@@ -142,19 +175,32 @@ onMounted(loadData)
 
     <DataView
       v-else
-      :rows="productos"
+      :rows="productoRows"
       :columns="columns"
       :view="currentView"
       :pagination="true"
       :page-size="20"
     />
   </section>
+
+  <!-- FORMULARIO -->
+
+  <section v-else class="inventory-form">
+    <ProductForm />
+
+    <button class="back-button" @click="closeForm">Volver al inventario</button>
+  </section>
 </template>
 
 <style scoped>
-.inventory-view {
+.inventory-view,
+.inventory-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.back-button {
+  align-self: flex-start;
 }
 </style>

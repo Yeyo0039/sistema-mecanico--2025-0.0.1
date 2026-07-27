@@ -3,6 +3,7 @@ import type { FormField } from '@/types/forms'
 
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
+import BaseImageLoader from '@/components/ui/BaseImageLoader.vue'
 
 const props = defineProps<{
   field: FormField
@@ -10,28 +11,55 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: any): void
+  (e: 'update:modelValue', value: unknown): void
 }>()
 </script>
 
 <template>
-  <BaseInput
-    v-if="field.type !== 'select'"
-    :label="field.label"
-    :type="field.type"
-    :placeholder="field.placeholder"
-    :required="field.required"
-    :disabled="field.disabled"
-    :readonly="field.readonly"
-    :modelValue="modelValue"
-    @update:modelValue="emit('update:modelValue', $event)"
-  />
+  <div class="base-field" :class="`field-${field.name}`" :id="`field-${field.name}`">
+    <!-- INPUTS GENERICOS -->
 
-  <BaseSelect
-    v-else
-    :label="field.label"
-    :options="field.options ?? []"
-    :modelValue="modelValue"
-    @update:modelValue="emit('update:modelValue', $event)"
-  />
+    <BaseInput
+      v-if="
+        field.type === 'text' ||
+        field.type === 'number' ||
+        field.type === 'email' ||
+        field.type === 'password' ||
+        field.type === 'textarea' ||
+        field.type === 'date'
+      "
+      :id="field.name"
+      :label="field.label"
+      :type="field.type"
+      :placeholder="field.placeholder"
+      :required="field.required"
+      :disabled="field.disabled"
+      :readonly="field.readonly"
+      :modelValue="modelValue"
+      @update:modelValue="emit('update:modelValue', $event)"
+    />
+
+    <!-- SELECT -->
+
+    <BaseSelect
+      v-else-if="field.type === 'select'"
+      :id="field.name"
+      :label="field.label"
+      :options="field.options ?? []"
+      :modelValue="modelValue"
+      @update:modelValue="emit('update:modelValue', $event)"
+    />
+    <!-- IMAGE -->
+
+    <BaseImageLoader
+      v-else-if="field.type === 'file'"
+      :id="field.name"
+      :label="field.label"
+      :required="field.required"
+      :disabled="field.disabled"
+      :readonly="field.readonly"
+      :modelValue="modelValue"
+      @update:modelValue="emit('update:modelValue', $event)"
+    />
+  </div>
 </template>
