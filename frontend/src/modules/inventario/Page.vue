@@ -149,14 +149,14 @@ async function loadData() {
   try {
     categorias.value = await getCategorias()
 
-    await getProductos()
+    await reloadProductos()
   } finally {
     loading.value = false
     mode.value = 'list'
   }
 }
 
-onMounted(reloadProductos)
+onMounted(loadData)
 </script>
 
 <template>

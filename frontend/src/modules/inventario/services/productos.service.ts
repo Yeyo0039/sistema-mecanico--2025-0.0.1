@@ -106,7 +106,22 @@ export async function handleFilter(filter: ToolbarFilterPayload) {
   switch (filter.id) {
     case 'categoria':
       productoFilters.categoriaId = Number(filter.value) || null
+      break
 
+    case 'marca':
+      productoFilters.marca = String(filter.value || '') || null
+      break
+
+    case 'stock':
+      productoFilters.stock = Number(filter.value) || null
+      break
+
+    case 'precioMin':
+      productoFilters.precioMin = Number(filter.value) || null
+      break
+
+    case 'precioMax':
+      productoFilters.precioMax = Number(filter.value) || null
       break
   }
 

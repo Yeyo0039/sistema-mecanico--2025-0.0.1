@@ -1,32 +1,27 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
-import type { SelectDatabaseOption, SelectOption } from '@/types/forms'
+import type { SelectOptionSource, SelectOption } from '@/types/forms'
 import { loadSelectOptions } from '../forms/schemas/LoadSelects'
+
+/*
+--------------------------------------------------------
+STATE
+--------------------------------------------------------
+*/
+
+const internalOptions = ref<SelectOption[]>([])
+
+/*
+--------------------------------------------------------
+PROPS
+--------------------------------------------------------
+*/
 
 const props = defineProps<{
   id: string
   label: string
-
-  /*
-  --------------------------------------------------------
-  SOPORTA LOS DOS FORMATOS
-  --------------------------------------------------------
-
-  ['Admin', 'Usuario']
-
-  ó
-
-  [
-    {
-      value: 1,
-      label: 'Honda',
-    }
-  ]
-
-  */
-
-  options: (string | SelectOption | SelectDatabaseOption)[]
+  options?: unknown[]
   modelValue?: string | number | null
 
   readonly?: boolean
@@ -36,26 +31,65 @@ const props = defineProps<{
   error?: string
 }>()
 
+/*
+--------------------------------------------------------
+EMITS
+--------------------------------------------------------
+*/
+
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string | number | null): void
 }>()
 
 /*
 --------------------------------------------------------
+INITIALIZE SELECT
+--------------------------------------------------------
+*/
+
+async function iniciarSelect() {
+  const options = props.options ?? []
+
+  // El padre envió opciones.
+  if (options.length > 0) {
+    internalOptions.value = normalizeOptions(options)
+    return
+  }
+
+  // Consultar el loader.
+  const loadedOptions = await loadSelectOptions(props.id)
+
+  internalOptions.value = normalizeOptions(loadedOptions)
+}
+/*
+--------------------------------------------------------
 NORMALIZA LAS OPCIONES
 --------------------------------------------------------
-
-Convierte automáticamente los string en:
-
-{
-    value: string
-    label: string
-}
-
 */
-const normalizedOptions = computed<SelectOption[]>(() => {
-  return props.options.map((option) => {
-    // STRING
+
+function normalizeOptions(options: unknown[] = []): SelectOption[] {
+  // No es un array.
+  if (!Array.isArray(options)) {
+    return []
+  }
+
+  // Select vacío.
+  if (options.length === 0) {
+    return [
+      {
+        value: '',
+        label: 'Sin opciones disponibles',
+      },
+    ]
+  }
+
+  return options.map((option): SelectOption => {
+    /*
+    ------------------------------------
+    STRING
+    ------------------------------------
+    */
+
     if (typeof option === 'string') {
       return {
         value: option,
@@ -63,26 +97,49 @@ const normalizedOptions = computed<SelectOption[]>(() => {
       }
     }
 
-    // OBJETOS DE LA BASE DE DATOS
-    if ('id' in option && 'nombre' in option) {
-      return {
-        value: option.id,
-        label: option.nombre,
+    /*
+    ------------------------------------
+    VALIDAR OBJETO
+    ------------------------------------
+    */
+
+    if (typeof option === 'object' && option !== null) {
+      /*
+      BASE DE DATOS
+      */
+
+      if ('id' in option && 'nombre' in option) {
+        return {
+          value: option.id as string | number,
+          label: String(option.nombre),
+        }
+      }
+
+      /*
+      YA NORMALIZADO
+      */
+
+      if ('value' in option && 'label' in option) {
+        return {
+          value: option.value as string | number,
+          label: String(option.label),
+        }
       }
     }
 
-    // OBJETOS YA NORMALIZADOS
-    if ('value' in option && 'label' in option) {
-      return option
-    }
+    /*
+    ------------------------------------
+    FALLBACK
+    ------------------------------------
+    */
 
-    // FALLBACK
     return {
       value: '',
       label: 'Opción inválida',
     }
   })
-})
+}
+
 /*
 --------------------------------------------------------
 HANDLE CHANGE
@@ -90,15 +147,21 @@ HANDLE CHANGE
 */
 
 function handleChange(event: Event) {
-  if (props.readonly === true) return
+  if (props.readonly) return
 
   const value = (event.target as HTMLSelectElement).value
 
   emit('update:modelValue', value || null)
 }
-onMounted(loadSelectOptions(props.id))
-</script>
 
+/*
+--------------------------------------------------------
+LIFECYCLE
+--------------------------------------------------------
+*/
+
+onMounted(iniciarSelect)
+</script>
 <template>
   <div class="select-group">
     <label class="select-label">
@@ -116,7 +179,7 @@ onMounted(loadSelectOptions(props.id))
     >
       <option disabled value="">Seleccione una opción</option>
 
-      <option v-for="option in normalizedOptions" :key="option.value" :value="option.value">
+      <option v-for="option in internalOptions" :key="option.value" :value="option.value">
         {{ option.label }}
       </option>
     </select>
@@ -132,20 +195,17 @@ onMounted(loadSelectOptions(props.id))
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-
   margin-bottom: 1.5rem;
 }
 
 .select-label {
   font-size: 0.9rem;
   font-weight: 500;
-
   color: var(--color-text-secondary);
 }
 
 .select {
   width: 100%;
-
   padding: 0.75rem 1rem;
 
   background: var(--color-surface-light);
@@ -155,7 +215,6 @@ onMounted(loadSelectOptions(props.id))
   border-radius: var(--radius-sm);
 
   outline: none;
-
   transition: 0.2s;
 }
 
@@ -170,13 +229,11 @@ onMounted(loadSelectOptions(props.id))
 
 .select-error {
   border-color: #ef4444;
-
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
 }
 
 .error-text {
   color: #ef4444;
-
   font-size: 0.8rem;
 }
 </style>

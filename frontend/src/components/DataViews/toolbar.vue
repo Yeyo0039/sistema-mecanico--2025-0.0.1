@@ -1,21 +1,40 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
+
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
-import { ref, watch } from 'vue'
+import BaseSelect from '@/components/ui/BaseSelect.vue'
 
 import type {
   ToolbarAction,
   ToolbarConfig,
-  ToolbarFilter,
   ToolbarFilterPayload,
   ToolbarView,
 } from './DataViewToolbar.types'
 
+/*
+--------------------------------------------------------
+STATE
+--------------------------------------------------------
+*/
+
 const searchValue = ref('')
+
+/*
+--------------------------------------------------------
+PROPS
+--------------------------------------------------------
+*/
 
 const props = defineProps<{
   config: ToolbarConfig
 }>()
+
+/*
+--------------------------------------------------------
+EMITS
+--------------------------------------------------------
+*/
 
 const emit = defineEmits<{
   search: [value: string]
@@ -24,51 +43,53 @@ const emit = defineEmits<{
   view: [view: ToolbarView]
 }>()
 
-function emitEvent(event: 'search' | 'action' | 'filter' | 'view', payload: unknown) {
-  switch (event) {
-    case 'search':
-      emit('search', payload as string)
-      break
-
-    case 'action':
-      emit('action', payload as ToolbarAction)
-      break
-
-    case 'filter':
-      emit('filter', payload as ToolbarFilterPayload)
-      break
-
-    case 'view':
-      emit('view', payload as ToolbarView)
-      break
-  }
-}
+/*
+--------------------------------------------------------
+SEARCH
+--------------------------------------------------------
+*/
 
 watch(searchValue, (value) => {
-  emitEvent('search', value)
+  emit('search', value)
 })
 
+/*
+--------------------------------------------------------
+EMITTERS
+--------------------------------------------------------
+*/
+
 function emitAction(action: ToolbarAction) {
-  emitEvent('action', action)
+  emit('action', action)
 }
 
-function emitFilter(filter: ToolbarFilter, value: string | number | boolean | null) {
-  emitEvent('filter', {
-    id: filter.id,
+function emitFilter(id: string, value: string | number | boolean | null) {
+  emit('filter', {
+    id,
     value,
   })
 }
 
 function emitView(view: ToolbarView) {
-  emitEvent('view', view)
+  emit('view', view)
+}
+
+function handleInputFilter(id: string, type: string, event: Event) {
+  const value = (event.target as HTMLInputElement).value
+
+  emitFilter(id, type === 'number' ? Number(value) : value)
 }
 </script>
 
 <template>
   <section class="toolbar">
+    <!-- TÍTULO -->
+
     <h2 v-if="config.title" class="toolbar-title">
       {{ config.title }}
     </h2>
+
+    <!-- BUSCADOR -->
 
     <BaseInput
       v-if="config.search"
@@ -79,39 +100,32 @@ function emitView(view: ToolbarView) {
       placeholder="Buscar..."
     />
 
+    <!-- FILTROS -->
+
     <div v-if="config.filters?.length" class="toolbar-filters">
       <div v-for="filter in config.filters" :key="filter.id" class="toolbar-filter">
-        <label>
-          {{ filter.label }}
-        </label>
+        <!-- SELECT -->
 
-        <select
+        <BaseSelect
           v-if="filter.type === 'select'"
-          class="toolbar-input"
-          @change="emitFilter(filter, ($event.target as HTMLSelectElement).value || null)"
-        >
-          <option value="">Seleccione...</option>
+          :id="filter.id"
+          :label="filter.label"
+          :options="filter.items ?? []"
+          @update:model-value="(value) => emitFilter(filter.id, value)"
+        />
 
-          <option v-for="item in filter.items" :key="String(item.value)" :value="item.value">
-            {{ item.label }}
-          </option>
-        </select>
+        <!-- INPUT -->
 
         <input
           v-else
           class="toolbar-input"
           :type="filter.type"
-          @input="
-            emitFilter(
-              filter,
-              filter.type === 'number'
-                ? Number(($event.target as HTMLInputElement).value)
-                : ($event.target as HTMLInputElement).value,
-            )
-          "
+          @input="handleInputFilter(filter.id, filter.type, $event)"
         />
       </div>
     </div>
+
+    <!-- ACCIONES -->
 
     <div v-if="config.actions?.length" class="toolbar-actions">
       <BaseButton
@@ -122,6 +136,8 @@ function emitView(view: ToolbarView) {
         @click="emitAction(action)"
       />
     </div>
+
+    <!-- VISTAS -->
 
     <div v-if="config.views?.length" class="toolbar-views">
       <BaseButton
@@ -142,43 +158,28 @@ function emitView(view: ToolbarView) {
   gap: 1rem;
 
   width: 100%;
-  align-content: center;
   padding: 1rem;
 
   background: var(--color-surface, #fff);
-
   border-bottom: 1px solid var(--color-border, #e5e7eb);
 }
 
-/* titulo */
-
 .toolbar-title {
   margin: 0;
-
   white-space: nowrap;
-
   font-size: 1.25rem;
-
   font-weight: 700;
 }
 
-/* buscador */
-
 .toolbar-search {
   flex: 1;
-
   max-width: 420px;
 }
 
-/* filtros */
-
 .toolbar-filters {
   display: flex;
-
   gap: 0.75rem;
-
   align-items: center;
-
   flex: 1;
 }
 
@@ -186,29 +187,18 @@ function emitView(view: ToolbarView) {
   min-width: 180px;
 }
 
-/* etiquetas */
-
-.toolbar-filter label {
-  display: none;
-}
-
-/* inputs */
-
 .toolbar-input {
   height: 38px;
-
   width: 100%;
 
   padding: 0 0.75rem;
 
   border-radius: 8px;
-
   border: 1px solid #0c37f5;
 
   background: white;
 
   font-size: 0.9rem;
-
   outline: none;
 }
 
@@ -216,17 +206,9 @@ function emitView(view: ToolbarView) {
   border-color: #2563eb;
 }
 
-/* botones */
-
-.toolbar-actions {
-  display: flex;
-
-  gap: 0.5rem;
-}
-
+.toolbar-actions,
 .toolbar-views {
   display: flex;
-
   gap: 0.5rem;
 }
 

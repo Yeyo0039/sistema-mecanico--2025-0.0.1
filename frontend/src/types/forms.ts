@@ -9,15 +9,23 @@ export type FieldType =
   | 'checkbox'
   | 'file'
 
-export type SelectDatabaseOption = {
-  id: number | string
-  nombre: string
-}
-
 export type SelectOption = {
   value: number | string
   label: string
 }
+
+export type SelectOptionSource =
+  | string
+  | SelectOption
+  | {
+      id: string | number
+      nombre: string
+      [key: string]: unknown
+    }
+  | []
+  | undefined
+  | null
+
 export interface FormField {
   name: string
   label: string
