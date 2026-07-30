@@ -22,6 +22,7 @@ import type {
   ToolbarFilter,
   ToolbarAction,
 } from '@/components/DataViews/DataViewToolbar.types'
+import BaseButton from '@/components/ui/BaseButton.vue'
 
 //----------------------------------------------------
 // STATE
