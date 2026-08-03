@@ -9,7 +9,14 @@ export const inventorySchema: FormSection[] = [
     fields: [
       {
         name: 'codigo',
-        label: 'Código',
+        label: 'Código interno',
+        type: 'text',
+        required: true,
+      },
+
+      {
+        name: 'referencia_interna',
+        label: 'Referencia interna',
         type: 'text',
         required: true,
       },
@@ -46,7 +53,7 @@ export const inventorySchema: FormSection[] = [
         type: 'textarea',
       },
       {
-        name: 'image',
+        name: 'imagen',
         label: 'imagen no disponible',
         type: 'file',
       },
@@ -66,20 +73,32 @@ export const inventorySchema: FormSection[] = [
         required: true,
       },
       {
+        name: 'stock_maximo',
+        label: 'Stock máximo',
+        type: 'number',
+        required: false,
+      },
+      {
         name: 'ubicacion',
         label: 'Ubicacion',
         type: 'text',
         required: false,
       },
       {
-        name: 'stockMinimo',
+        name: 'stock_minimo',
         label: 'Stock mínimo',
         type: 'number',
         required: false,
       },
+    ],
+  },
+  {
+    title: 'Precios',
 
+    columns: 4,
+    fields: [
       {
-        name: 'precioCompra',
+        name: 'precio_compra',
         label: 'Precio compra',
         type: 'number',
         required: true,
@@ -90,6 +109,22 @@ export const inventorySchema: FormSection[] = [
         label: 'Precio venta',
         type: 'number',
         required: true,
+      },
+      {
+        name: 'proveedor',
+        label: 'Proveedor',
+        type: 'text',
+        required: false,
+      },
+      {
+        name: 'activo',
+        label: 'Activo',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Sí', value: '1' },
+          { label: 'No', value: '0' },
+        ],
       },
     ],
   },

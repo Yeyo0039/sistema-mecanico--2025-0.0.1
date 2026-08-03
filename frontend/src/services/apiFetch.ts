@@ -25,8 +25,12 @@ export type ApiResponse<T> = {
 }
 
 export type ApiFetchOptions = RequestInit & {
-  // Los errores siempre muestran alerta. El éxito se solicita con true.
+  // Controla si las respuestas exitosas deben mostrar notificaciones.
+  // Por defecto todas las respuestas exitosas notifican a menos que se pase false.
   notifySuccess?: boolean
+  // Controla si las respuestas de error deben notificar.
+  // Por defecto los errores siempre se notifican.
+  notifyError?: boolean
 }
 
 // Mensajes de respaldo cuando el backend no devuelve message ni mensaje.
@@ -127,7 +131,12 @@ export async function apiFetch<T>(
   path: string,
   options: ApiFetchOptions = {},
 ): Promise<ApiResponse<T>> {
-  const { notifySuccess = false, headers: optionHeaders, ...requestOptions } = options
+  const {
+    notifySuccess = true,
+    notifyError = true,
+    headers: optionHeaders,
+    ...requestOptions
+  } = options
   // useNotification comparte su estado reactivo con NotificationContainer.
   const notify = useNotification()
   // FormData define su propio Content-Type; no debemos sobrescribirlo.
@@ -150,11 +159,11 @@ export async function apiFetch<T>(
 
     if (!response.ok) {
       // 4xx y 5xx: una alerta global y un ApiError para lógica adicional de la pantalla.
-      notify.error(`Error ${response.status}`, message)
+      if (notifyError) notify.error(`Error ${response.status}`, message)
       throw new ApiError(response.status, message, body)
     }
 
-    if (notifySuccess && response.status !== 204) notify.success('Operación exitosa', message)
+    if (notifySuccess) notify.success('Operación exitosa', message)
 
     const data =
       body && typeof body === 'object' && 'data' in body ? (body as { data: T }).data : (body as T)
@@ -177,7 +186,12 @@ export async function apiFetch<T>(
  * Ejemplo: const file = await apiFetchBlob('/api/reportes/inventario', { notifySuccess: true })
  */
 export async function apiFetchBlob(path: string, options: ApiFetchOptions = {}) {
-  const { notifySuccess = false, headers: optionHeaders, ...requestOptions } = options
+  const {
+    notifySuccess = true,
+    notifyError = true,
+    headers: optionHeaders,
+    ...requestOptions
+  } = options
   const notify = useNotification()
   const headers = new Headers(optionHeaders)
   const token = localStorage.getItem('authToken')

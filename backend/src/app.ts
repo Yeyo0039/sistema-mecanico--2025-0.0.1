@@ -1,8 +1,10 @@
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.ts";
-import categoriasRoutes from "./routes/categorias.routes.ts";
-import productosRoutes from "./routes/productos.routes.ts";
+import categoriasRoutes from "./routes/inventario/categorias.routes.ts";
+import productosRoutes from "./routes/inventario/productos.routes.ts";
+
+import marcasRoutes from "./routes/inventario/marcas.routes.ts";
 
 const app = express();
 
@@ -12,9 +14,9 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/categorias", categoriasRoutes);
-app.use("/api/productos", productosRoutes);
-
+app.use("/api/inventario/categorias", categoriasRoutes);
+app.use("/api/inventario/productos", productosRoutes);
+app.use("/api/inventario/marcas", marcasRoutes); // Asegúrate de importar correctamente las rutas de marcas
 // Ruta de prueba
 app.get("/", (req, res) => {
   res.json({

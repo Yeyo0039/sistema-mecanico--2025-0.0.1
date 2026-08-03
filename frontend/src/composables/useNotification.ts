@@ -1,20 +1,34 @@
 import { ref } from 'vue'
 import type { Notification } from '@/types/notification'
 
+const MAX_NOTIFICATIONS = 5
 const notifications = ref<Notification[]>([])
 
 function add(notification: Omit<Notification, 'id'>) {
   const id = Date.now()
+  const duration = notification.duration ?? 4000
+  const queueKey =
+    notification.key ?? `${notification.type}|${notification.title}|${notification.message}`
+
+  if (notifications.value.some((item) => item.key === queueKey)) {
+    return
+  }
+
+  if (notifications.value.length >= MAX_NOTIFICATIONS) {
+    notifications.value.shift()
+  }
 
   notifications.value.push({
     id,
     ...notification,
+    duration,
+    key: queueKey,
   })
 
-  if (notification.duration !== 0) {
+  if (duration !== 0) {
     setTimeout(() => {
       remove(id)
-    }, notification.duration ?? 4000)
+    }, duration)
   }
 }
 

@@ -63,7 +63,7 @@ function emitAction(action: ToolbarAction) {
   emit('action', action)
 }
 
-function emitFilter(id: string, value: string | number | boolean | null) {
+function emitFilter(id: string, value: string | number | boolean | null | Array<string | number>) {
   emit('filter', {
     id,
     value,

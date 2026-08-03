@@ -22,7 +22,8 @@ const props = defineProps<{
   id: string
   label: string
   options?: unknown[]
-  modelValue?: string | number | null
+  modelValue?: string | number | null | Array<string | number>
+  type?: 'select' | 'checkbox'
 
   readonly?: boolean
   disabled?: boolean
@@ -38,7 +39,7 @@ EMITS
 */
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string | number | null): void
+  (e: 'update:modelValue', value: string | number | null | Array<string | number>): void
 }>()
 
 /*
@@ -52,14 +53,14 @@ async function iniciarSelect() {
 
   // El padre envió opciones.
   if (options.length > 0) {
-    internalOptions.value = normalizeOptions(options)
+    internalOptions.value = normalizeOptions(options, props.type === 'checkbox')
     return
   }
 
   // Consultar el loader.
   const loadedOptions = await loadSelectOptions(props.id)
 
-  internalOptions.value = normalizeOptions(loadedOptions)
+  internalOptions.value = normalizeOptions(loadedOptions, props.type === 'checkbox')
 }
 /*
 --------------------------------------------------------
@@ -67,7 +68,7 @@ NORMALIZA LAS OPCIONES
 --------------------------------------------------------
 */
 
-function normalizeOptions(options: unknown[] = []): SelectOption[] {
+function normalizeOptions(options: unknown[] = [], isCheckbox = false): SelectOption[] {
   // No es un array.
   if (!Array.isArray(options)) {
     return []
@@ -75,12 +76,14 @@ function normalizeOptions(options: unknown[] = []): SelectOption[] {
 
   // Select vacío.
   if (options.length === 0) {
-    return [
-      {
-        value: '',
-        label: 'Sin opciones disponibles',
-      },
-    ]
+    return isCheckbox
+      ? []
+      : [
+          {
+            value: '',
+            label: 'Sin opciones disponibles',
+          },
+        ]
   }
 
   return options.map((option): SelectOption => {
@@ -154,6 +157,30 @@ function handleChange(event: Event) {
   emit('update:modelValue', value || null)
 }
 
+function handleCheckboxChange(event: Event, optionValue: string | number) {
+  if (props.readonly) return
+
+  const checkbox = event.target as HTMLInputElement
+  const currentValue = Array.isArray(props.modelValue) ? [...props.modelValue] : []
+
+  if (checkbox.checked) {
+    if (!currentValue.includes(optionValue)) {
+      currentValue.push(optionValue)
+    }
+  } else {
+    const index = currentValue.indexOf(optionValue)
+    if (index >= 0) {
+      currentValue.splice(index, 1)
+    }
+  }
+
+  emit('update:modelValue', currentValue)
+}
+
+function optionIsChecked(value: string | number) {
+  return Array.isArray(props.modelValue) && props.modelValue.includes(value)
+}
+
 /*
 --------------------------------------------------------
 LIFECYCLE
@@ -168,7 +195,25 @@ onMounted(iniciarSelect)
       {{ props.label }}
     </label>
 
+    <div v-if="props.type === 'checkbox'" class="checkbox-group">
+      <div v-if="internalOptions.length === 0" class="checkbox-empty">
+        Sin opciones disponibles.
+      </div>
+
+      <label v-for="option in internalOptions" :key="option.value" class="checkbox-option">
+        <input
+          type="checkbox"
+          :value="option.value"
+          :checked="optionIsChecked(option.value)"
+          :disabled="props.disabled || props.readonly"
+          @change="(event) => handleCheckboxChange(event, option.value)"
+        />
+        <span>{{ option.label }}</span>
+      </label>
+    </div>
+
     <select
+      v-else
       class="select"
       :id="props.id"
       :class="{ 'select-error': props.error }"
@@ -177,7 +222,7 @@ onMounted(iniciarSelect)
       :required="props.required"
       @change="handleChange"
     >
-      <option disabled value="">Seleccione una opción</option>
+      <option value="">Seleccione una opción</option>
 
       <option v-for="option in internalOptions" :key="option.value" :value="option.value">
         {{ option.label }}
@@ -230,6 +275,35 @@ onMounted(iniciarSelect)
 .select-error {
   border-color: #ef4444;
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.checkbox-group {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-light);
+}
+
+.checkbox-option input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.checkbox-empty {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface-light);
 }
 
 .error-text {

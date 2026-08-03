@@ -1,7 +1,7 @@
 // selectLoader.ts
 
 import { getCategorias } from '@/modules/inventario/services/categorias.service'
-
+import { getMarcas } from '@/modules/inventario/services/marcas'
 /*
 --------------------------------------------------------
 CACHE
@@ -74,7 +74,12 @@ export async function loadSelectOptions(id: string) {
 
       return data
     }
-
+    case 'marca': {
+      // Aquí deberías llamar a la función que obtiene las marcas
+      const data = await getMarcas() // Asegúrate de importar esta función correctamente
+      saveCache(id, data)
+      return data
+    }
     default:
       return []
   }

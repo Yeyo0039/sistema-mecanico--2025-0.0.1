@@ -31,5 +31,5 @@ export interface ToolbarConfig {
 
 export interface ToolbarFilterPayload {
   id: string
-  value: string | number | boolean | null
+  value: string | number | boolean | null | Array<string | number>
 }

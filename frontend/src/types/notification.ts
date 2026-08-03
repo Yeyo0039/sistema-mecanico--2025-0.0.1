@@ -14,4 +14,6 @@ export interface Notification {
   duration?: number
 
   closable?: boolean
+
+  key?: string
 }

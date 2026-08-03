@@ -199,9 +199,12 @@ export async function getProductos(
 
   const query = params.toString()
 
-  const response = await apiFetch<Producto[]>(`/api/productos${query ? `?${query}` : ''}`, {
-    signal,
-  })
+  const response = await apiFetch<Producto[]>(
+    `/api/inventario/productos${query ? `?${query}` : ''}`,
+    {
+      signal,
+    },
+  )
   console.log(response)
   return response.data
 }
