@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang>
 defineProps({
   rows: {
     type: Array,
@@ -9,11 +9,17 @@ defineProps({
     default: () => [],
   },
 })
+
+const emit = defineEmits(['select-row'])
+
+function selectRow(row) {
+  emit('select-row', row)
+}
 </script>
 
 <template>
   <div class="dv-compact">
-    <div v-for="row in rows" :key="row.id" class="dv-compact-row">
+    <div v-for="row in rows" :key="row.id" class="dv-compact-row" @click="selectRow(row)">
       <div v-for="column in columns" :key="column.field" class="dv-compact-cell">
         <strong>{{ column.title }}:</strong>
         <span>{{ row[column.field] }}</span>

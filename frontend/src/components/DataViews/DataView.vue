@@ -35,7 +35,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['action'])
+const emit = defineEmits(['action', 'select-row'])
 
 const ui = reactive({
   page: 1,
@@ -76,6 +76,10 @@ function executeAction(action: any, row: any) {
   })
   console.log(emit)
 }
+
+function handleRowSelect(row: any) {
+  emit('select-row', row)
+}
 </script>
 
 <template>
@@ -85,6 +89,7 @@ function executeAction(action: any, row: any) {
       :rows="visibleRows"
       :columns="props.columns ?? []"
       @action="executeAction"
+      @select-row="handleRowSelect"
     />
 
     <CardView
@@ -92,6 +97,7 @@ function executeAction(action: any, row: any) {
       :rows="visibleRows"
       :columns="props.columns ?? []"
       @action="executeAction"
+      @select-row="handleRowSelect"
     />
 
     <CompactView
@@ -99,6 +105,7 @@ function executeAction(action: any, row: any) {
       :rows="visibleRows"
       :columns="props.columns ?? []"
       @action="executeAction"
+      @select-row="handleRowSelect"
     />
 
     <Pagination v-if="props.pagination" :page="ui.page" :pages="totalPages" @change="changePage" />

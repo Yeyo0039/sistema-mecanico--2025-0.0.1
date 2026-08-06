@@ -3,6 +3,9 @@ import { ref, onMounted } from 'vue'
 
 import type { SelectOptionSource, SelectOption } from '@/types/forms'
 import { loadSelectOptions } from '../forms/schemas/LoadSelects'
+import BaseButton from './BaseButton.vue'
+import type { AddSelectOptionPayload } from './BaseSelectHelpers'
+import { normalizeOptions, buildAddOptionPayload } from './BaseSelectHelpers'
 
 /*
 --------------------------------------------------------
@@ -11,6 +14,7 @@ STATE
 */
 
 const internalOptions = ref<SelectOption[]>([])
+const selectLogs = ref<Array<{ event: string; payload: unknown; timestamp: string }>>([])
 
 /*
 --------------------------------------------------------
@@ -21,9 +25,10 @@ PROPS
 const props = defineProps<{
   id: string
   label: string
-  options?: unknown[]
+  options?: SelectOptionSource
   modelValue?: string | number | null | Array<string | number>
   type?: 'select' | 'checkbox'
+  source?: string
 
   readonly?: boolean
   disabled?: boolean
@@ -40,6 +45,8 @@ EMITS
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string | number | null | Array<string | number>): void
+  (e: 'add-option', payload: AddSelectOptionPayload): void
+  (e: 'select-log', log: { event: string; payload: unknown; timestamp: string }): void
 }>()
 
 /*
@@ -49,7 +56,7 @@ INITIALIZE SELECT
 */
 
 async function iniciarSelect() {
-  const options = props.options ?? []
+  const options = Array.isArray(props.options) ? props.options : []
 
   // El padre envió opciones.
   if (options.length > 0) {
@@ -61,85 +68,11 @@ async function iniciarSelect() {
   const loadedOptions = await loadSelectOptions(props.id)
 
   internalOptions.value = normalizeOptions(loadedOptions, props.type === 'checkbox')
-}
-/*
---------------------------------------------------------
-NORMALIZA LAS OPCIONES
---------------------------------------------------------
-*/
-
-function normalizeOptions(options: unknown[] = [], isCheckbox = false): SelectOption[] {
-  // No es un array.
-  if (!Array.isArray(options)) {
-    return []
-  }
-
-  // Select vacío.
-  if (options.length === 0) {
-    return isCheckbox
-      ? []
-      : [
-          {
-            value: '',
-            label: 'Sin opciones disponibles',
-          },
-        ]
-  }
-
-  return options.map((option): SelectOption => {
-    /*
-    ------------------------------------
-    STRING
-    ------------------------------------
-    */
-
-    if (typeof option === 'string') {
-      return {
-        value: option,
-        label: option,
-      }
-    }
-
-    /*
-    ------------------------------------
-    VALIDAR OBJETO
-    ------------------------------------
-    */
-
-    if (typeof option === 'object' && option !== null) {
-      /*
-      BASE DE DATOS
-      */
-
-      if ('id' in option && 'nombre' in option) {
-        return {
-          value: option.id as string | number,
-          label: String(option.nombre),
-        }
-      }
-
-      /*
-      YA NORMALIZADO
-      */
-
-      if ('value' in option && 'label' in option) {
-        return {
-          value: option.value as string | number,
-          label: String(option.label),
-        }
-      }
-    }
-
-    /*
-    ------------------------------------
-    FALLBACK
-    ------------------------------------
-    */
-
-    return {
-      value: '',
-      label: 'Opción inválida',
-    }
+  logEvent('init', {
+    field: props.id,
+    source: props.source ?? props.id,
+    type: props.type ?? 'select',
+    options: internalOptions.value,
   })
 }
 
@@ -149,12 +82,51 @@ HANDLE CHANGE
 --------------------------------------------------------
 */
 
+function logEvent(event: string, payload: unknown) {
+  const logEntry = {
+    event,
+    payload,
+    timestamp: new Date().toISOString(),
+  }
+
+  selectLogs.value.push(logEntry)
+  emit('select-log', logEntry)
+  console.log('BaseSelect log:', logEntry)
+}
+
 function handleChange(event: Event) {
   if (props.readonly) return
 
   const value = (event.target as HTMLSelectElement).value
+  const normalizedValue = value || null
 
-  emit('update:modelValue', value || null)
+  emit('update:modelValue', normalizedValue)
+  logEvent('update:modelValue', {
+    value: normalizedValue,
+    field: props.id,
+    source: props.source ?? props.id,
+  })
+}
+
+function agregarOpcion() {
+  if (props.readonly || props.disabled) return
+
+  const value = window.prompt('Nueva opción:')?.trim()
+  if (!value) return
+
+  const payload = buildAddOptionPayload(
+    props.source ?? props.id,
+    props.id,
+    props.type ?? 'select',
+    value,
+  )
+
+  internalOptions.value.push({ value, label: value })
+  emit('update:modelValue', value)
+  emit('add-option', payload)
+  logEvent('add-option', payload)
+
+  console.log('BaseSelect: opción agregada', payload)
 }
 
 function handleCheckboxChange(event: Event, optionValue: string | number) {
@@ -175,6 +147,12 @@ function handleCheckboxChange(event: Event, optionValue: string | number) {
   }
 
   emit('update:modelValue', currentValue)
+  logEvent('update:modelValue', {
+    value: currentValue,
+    field: props.id,
+    source: props.source ?? props.id,
+    type: props.type ?? 'checkbox',
+  })
 }
 
 function optionIsChecked(value: string | number) {
@@ -232,6 +210,10 @@ onMounted(iniciarSelect)
     <span v-if="props.error" class="error-text">
       {{ props.error }}
     </span>
+
+    <div class="select-add-button">
+      <BaseButton type="button" icon="add" text="Agregar" @click="agregarOpcion" />
+    </div>
   </div>
 </template>
 

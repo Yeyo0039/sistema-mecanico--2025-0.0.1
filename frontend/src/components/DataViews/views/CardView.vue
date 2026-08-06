@@ -9,11 +9,17 @@ defineProps({
     default: () => [],
   },
 })
+
+const emit = defineEmits(['select-row'])
+
+function selectRow(row) {
+  emit('select-row', row)
+}
 </script>
 
 <template>
   <div class="dv-cards">
-    <article v-for="row in rows" :key="row.id" class="dv-card">
+    <article v-for="row in rows" :key="row.id" class="dv-card" @click="selectRow(row)">
       <div v-for="column in columns" :key="column.field" class="dv-card-item">
         <span class="dv-card-label">{{ column.title }}</span>
         <span class="dv-card-value">{{ row[column.field] }}</span>

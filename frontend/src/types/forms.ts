@@ -14,7 +14,7 @@ export type SelectOption = {
   label: string
 }
 
-export type SelectOptionSource =
+export type SelectOptionSourceItem =
   | string
   | SelectOption
   | {
@@ -22,7 +22,11 @@ export type SelectOptionSource =
       nombre: string
       [key: string]: unknown
     }
-  | []
+
+export type SelectOptionSource =
+  | SelectOptionSourceItem
+  | SelectOptionSourceItem[]
+  | unknown[]
   | undefined
   | null
 

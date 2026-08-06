@@ -25,6 +25,8 @@ router.get("/", async (req, res) => {
         p.codigo,
         p.nombre,
         p.descripcion,
+        p.referencia_interna,
+        p.referencia_fabricante,
         p.id_categoria AS categoria_id,
         c.nombre AS categoria,
         c.icono AS categoria_icono,

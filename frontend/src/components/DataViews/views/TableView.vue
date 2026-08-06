@@ -1,7 +1,7 @@
 <script setup>
 import TableCell from './TableCell.vue'
 
-defineProps({
+const props = defineProps({
   rows: {
     type: Array,
     default: () => [],
@@ -17,6 +17,12 @@ defineProps({
     default: 'id',
   },
 })
+
+const emit = defineEmits(['select-row'])
+
+function rowClick(row) {
+  emit('select-row', row)
+}
 </script>
 
 <template>
@@ -36,7 +42,7 @@ defineProps({
       </thead>
 
       <tbody>
-        <tr v-for="row in rows" :key="row[rowKey]" class="dv-row">
+        <tr v-for="row in rows" :key="row[rowKey]" class="dv-row" @click="rowClick(row)">
           <TableCell v-for="column in columns" :key="column.field" :row="row" :column="column" />
         </tr>
       </tbody>
