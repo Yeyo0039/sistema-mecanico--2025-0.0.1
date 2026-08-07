@@ -123,7 +123,7 @@ const emit = defineEmits<{
 type ProductRow = Record<string, unknown>
 
 type SelectedProductData = {
-  id?: number | string
+  id?: number | string | null
   codigo: string
   referencia_interna: string
   nombre: string
@@ -181,18 +181,18 @@ class ProductEntity {
 const selectedProductEntity = ref<ProductEntity | null>(null)
 const selectionCache = ref<{ entity: ProductEntity; selectedAt: number } | null>(null)
 
-function normalizeStringOrNumber(value: unknown): string | number | undefined {
+function normalizeStringOrNumber(value: unknown): string | number | null {
   if (typeof value === 'string' || typeof value === 'number') {
     return value
   }
 
   if (value == null) {
-    return undefined
+    return null
   }
 
   const stringValue = String(value)
   if (stringValue.trim() === '') {
-    return undefined
+    return null
   }
 
   const numberValue = Number(value)

@@ -5,7 +5,10 @@ export const inventorySchema: FormSection[] = [
     title: 'Información General',
 
     columns: 4,
-
+    entity: {
+      table: 'productos',
+      primaryKey: 'id',
+    },
     fields: [
       {
         name: 'codigo',
@@ -64,7 +67,10 @@ export const inventorySchema: FormSection[] = [
     title: 'Inventario',
 
     columns: 4,
-
+    entity:{
+      table:"inventario",
+      primariKey:"id_inventario"
+    }
     fields: [
       {
         name: 'stock',

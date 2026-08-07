@@ -8,6 +8,7 @@ export type FieldType =
   | 'date'
   | 'checkbox'
   | 'file'
+  | 'boolean'
 
 export type SelectOption = {
   value: number | string
@@ -50,4 +51,5 @@ export interface FormSection {
   columns?: 1 | 2 | 3 | 4
 
   fields: FormField[]
+  entity?: { table: string; primaryKey: string }
 }

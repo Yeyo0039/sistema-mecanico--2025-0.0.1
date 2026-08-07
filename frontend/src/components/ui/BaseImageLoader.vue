@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+
 const props = defineProps<{
   label: string
   placeholder?: string
 
-  modelValue?: File | null
+  modelValue?: File | string | null
 
   readonly?: boolean
   disabled?: boolean
@@ -15,16 +17,47 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: File | null): void
+  (e: 'update:modelValue', value: File | string | null): void
 }>()
+
+const previewUrl = ref<string | null>(null)
 
 function handleFile(event: Event) {
   const target = event.target as HTMLInputElement
-
   const file = target.files?.[0] ?? null
+
+  if (file) {
+    previewUrl.value = URL.createObjectURL(file)
+  } else {
+    previewUrl.value = null
+  }
 
   emit('update:modelValue', file)
 }
+
+function setPreviewFromValue(value: File | string | null | undefined) {
+  if (value instanceof File) {
+    previewUrl.value = URL.createObjectURL(value)
+    return
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    previewUrl.value = value
+    return
+  }
+
+  previewUrl.value = null
+}
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    setPreviewFromValue(value)
+  },
+  { immediate: true },
+)
+
+const hasPreview = computed(() => Boolean(previewUrl.value))
 </script>
 
 <template>
@@ -33,7 +66,7 @@ function handleFile(event: Event) {
       {{ label }}
     </label>
 
-    <label class="dropbox-container">
+    <label class="dropbox-container" :class="{ 'has-preview': hasPreview }">
       <input
         class="dropbox-input"
         type="file"
@@ -43,7 +76,11 @@ function handleFile(event: Event) {
         @change="handleFile"
       />
 
-      <div class="dropbox-content">
+      <div v-if="hasPreview" class="preview-wrapper">
+        <img :src="previewUrl || ''" alt="Preview de imagen" />
+      </div>
+
+      <div v-else class="dropbox-content">
         <p>Arrastra una imagen o haz click aquí</p>
 
         <small> PNG · JPG · JPEG · WEBP </small>
@@ -93,6 +130,27 @@ function handleFile(event: Event) {
   gap: 0.5rem;
 
   text-align: center;
+}
+
+.preview-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.preview-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dropbox-container.has-preview {
+  padding: 0.5rem;
 }
 
 .dropbox-content p {

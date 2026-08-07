@@ -2,6 +2,83 @@ import { Router } from "express";
 import db from "../../config/database.ts";
 const router = Router();
 
+async function upsertInventarioProducto(
+  productoId: number,
+  stock: unknown,
+  stockMinimo: unknown,
+  stockMaximo: unknown,
+  ubicacion: unknown,
+) {
+  const existingInventario = await db.query(
+    `SELECT id_inventario FROM inventario WHERE id_producto = $1 LIMIT 1`,
+    [productoId],
+  );
+
+  if (existingInventario.rows.length > 0) {
+    await db.query(
+      `UPDATE inventario
+       SET cantidad = $2,
+           stock_minimo = $3,
+           stock_maximo = $4,
+           ubicacion = $5
+       WHERE id_producto = $1`,
+      [
+        productoId,
+        stock ?? 0,
+        stockMinimo ?? null,
+        stockMaximo ?? null,
+        ubicacion ?? null,
+      ],
+    );
+    return;
+  }
+
+  await db.query(
+    `INSERT INTO inventario
+      (id_producto, cantidad, stock_minimo, stock_maximo, ubicacion)
+      VALUES ($1, $2, $3, $4, $5)`,
+    [
+      productoId,
+      stock ?? 0,
+      stockMinimo ?? null,
+      stockMaximo ?? null,
+      ubicacion ?? null,
+    ],
+  );
+}
+
+async function upsertPrecioProducto(
+  productoId: number,
+  precioCompra: unknown,
+  precioVenta: unknown,
+) {
+  const existingPrecio = await db.query(
+    `SELECT id_precio FROM precios WHERE id_producto = $1 LIMIT 1`,
+    [productoId],
+  );
+
+  if (existingPrecio.rows.length > 0) {
+    await db.query(
+      `UPDATE precios
+       SET precio_compra = $2,
+           precio_venta = $3,
+           proveedor = $4,
+           fecha = NOW(),
+           activo = $5
+       WHERE id_producto = $1`,
+      [productoId, precioCompra ?? null, precioVenta, null, true],
+    );
+    return;
+  }
+
+  await db.query(
+    `INSERT INTO precios
+      (id_producto, precio_compra, precio_venta, proveedor, fecha, activo)
+      VALUES ($1, $2, $3, $4, NOW(), $5)`,
+    [productoId, precioCompra ?? null, precioVenta, null, true],
+  );
+}
+
 router.get("/", async (req, res) => {
   const categoryId = req.query.categoriaId
     ? Number(req.query.categoriaId)
@@ -68,6 +145,7 @@ router.get("/", async (req, res) => {
 router.post("/_crear", async (req, res) => {
   console.log("Datos recibidos para crear producto:", req.body);
   const {
+    id,
     codigo,
     referencia_interna,
     nombre,
@@ -99,52 +177,104 @@ router.post("/_crear", async (req, res) => {
   try {
     await db.query("BEGIN");
 
-    const insertProducto = await db.query(
-      `INSERT INTO productos
-        (codigo, nombre, descripcion, id_categoria, id_marca, ubicacion, referencia_fabricante, referencia_interna, detalle, activo)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-        RETURNING id`,
-      [
-        codigo,
-        nombre,
-        detalles,
-        categoria,
-        marca,
-        ubicacion,
-        null,
-        referencia_interna,
-        null,
-        true,
-      ],
-    );
+    let productoId =
+      Number.isInteger(Number(id)) && Number(id) > 0 ? Number(id) : null;
+    let persistedProductId: number | null = null;
 
-    const productoId = insertProducto.rows[0].id;
+    if (productoId !== null) {
+      persistedProductId = productoId;
+      await db.query(
+        `UPDATE productos
+         SET codigo = $1,
+             nombre = $2,
+             descripcion = $3,
+             id_categoria = $4,
+             id_marca = $5,
+             ubicacion = $6,
+             referencia_interna = $7,
+             detalle = $8,
+             activo = $9
+         WHERE id = $10`,
+        [
+          codigo,
+          nombre,
+          detalles,
+          categoria,
+          marca,
+          ubicacion,
+          referencia_interna,
+          null,
+          true,
+          productoId,
+        ],
+      );
 
-    await db.query(
-      `INSERT INTO inventario
-        (id_producto, cantidad, stock_minimo, stock_maximo, ubicacion)
-        VALUES ($1, $2, $3, $4, $5)`,
-      [
-        productoId,
+      if (persistedProductId === null) {
+        throw new Error(
+          "No se pudo determinar el id del producto para actualizar",
+        );
+      }
+
+      await upsertInventarioProducto(
+        persistedProductId,
         stock,
-        stock_minimo ?? null,
-        stock_maximo ?? null,
-        ubicacion ?? null,
-      ],
-    );
+        stock_minimo,
+        stock_maximo,
+        ubicacion,
+      );
 
-    await db.query(
-      `INSERT INTO precios
-        (id_producto, precio_compra, precio_venta, proveedor, fecha, activo)
-        VALUES ($1, $2, $3, $4, NOW(), $5)`,
-      [productoId, precio_compra ?? null, precioVenta, null, true],
-    );
+      await upsertPrecioProducto(
+        persistedProductId,
+        precio_compra,
+        precioVenta,
+      );
+    } else {
+      const insertProducto = await db.query(
+        `INSERT INTO productos
+          (codigo, nombre, descripcion, id_categoria, id_marca, ubicacion, referencia_fabricante, referencia_interna, detalle, activo)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          RETURNING id`,
+        [
+          codigo,
+          nombre,
+          detalles,
+          categoria,
+          marca,
+          ubicacion,
+          null,
+          referencia_interna,
+          null,
+          true,
+        ],
+      );
+
+      persistedProductId = insertProducto.rows[0].id;
+      productoId = persistedProductId;
+
+      if (persistedProductId === null) {
+        throw new Error("No se pudo obtener el id del producto creado");
+      }
+
+      await upsertInventarioProducto(
+        persistedProductId,
+        stock,
+        stock_minimo,
+        stock_maximo,
+        ubicacion,
+      );
+
+      await upsertPrecioProducto(
+        persistedProductId,
+        precio_compra,
+        precioVenta,
+      );
+    }
 
     if (Array.isArray(compatibilidad) && compatibilidad.length > 0) {
       const compatibilityValues = compatibilidad
         .filter((item) => item && item.id_producto === undefined)
         .map((item) => [
-          productoId,
+          persistedProductId,
           item.fabricante ?? null,
           item.modelo ?? null,
           item.cilindraje ?? null,
@@ -166,11 +296,34 @@ router.post("/_crear", async (req, res) => {
       }
     }
 
+    if (imagen && persistedProductId) {
+      const imageName =
+        typeof imagen === "string" ? imagen : imagen?.name || "imagen";
+      const imageValue = typeof imagen === "string" ? imagen : null;
+      const existing = await db.query(
+        `SELECT id_multimedia FROM multimedia WHERE id_producto = $1 AND tipo = $2 LIMIT 1`,
+        [persistedProductId, "imagen"],
+      );
+
+      if (existing.rows.length > 0) {
+        await db.query(
+          `UPDATE multimedia SET nombre_archivo = $1, ruta = $2, principal = true WHERE id_multimedia = $3`,
+          [imageName, imageValue ?? "", existing.rows[0].id_multimedia],
+        );
+      } else {
+        await db.query(
+          `INSERT INTO multimedia (id_producto, tipo, nombre_archivo, ruta, principal)
+           VALUES ($1, $2, $3, $4, true)`,
+          [persistedProductId, "imagen", imageName, imageValue ?? ""],
+        );
+      }
+    }
+
     await db.query("COMMIT");
 
     return res.status(201).json({
       message: "Producto creado exitosamente",
-      id: productoId,
+      id: persistedProductId,
     });
   } catch (err) {
     await db.query("ROLLBACK");
